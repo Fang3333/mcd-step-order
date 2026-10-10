@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>麦麦精算师</title>
+<style>
+  :root {
+    --red: #DA291C;
+    --amber: #FFC72C;
+    --bg: #FFF6EA;
+    --card: #ffffff;
+    --border: #F2E3C8;
+    --text: #2b2118;
+    --muted: #9a8a75;
+    --green: #1D9E75;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding-bottom: 60px;
+  }
+  header {
+    background: var(--red);
+    color: #fff;
+    padding: 18px 24px 16px;
+    border-bottom: 5px solid var(--amber);
+  }
+  header h1 { font-size: 21px; font-weight: 700; letter-spacing: 1px; }
+  header p { font-size: 13px; opacity: .92; margin-top: 4px; }
+  header .logo-row { display: flex; align-items: center; gap: 14px; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+  .step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-top: 16px;
+  }
+  .step h2 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .step .tip { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+  .btn {
+    display: inline-block;
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    transition: all .15s;
+  }
+  .btn:hover { border-color: var(--red); color: var(--red); }
+  .btn.active { background: var(--red); color: #fff; border-color: var(--red); }
+  .btn.primary { background: var(--red); color: #fff; border-color: var(--red); }
+  .btn.primary:hover { background: #b71c1c; }
+  input[type=text] {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    width: 200px;
+    margin-right: 8px;
+  }
+  .list { margin-top: 10px; }
+  .list .item {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .list .item:hover { border-color: var(--amber); background: #fffaf0; }
+  .list .item.sel { border-color: var(--red); background: #fff5f0; }
+  .item .name { font-size: 14px; }
+  .item .price { color: var(--red); font-weight: 600; font-size: 14px; }
+  .item .extra { color: var(--muted); font-size: 12px; }
+  .result { margin-top: 12px; }
+  .result .plan-item {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    background: #fffdf8;
+  }
+  .result .plan-item .title { font-weight: 600; font-size: 14px; }
+  .result .cov { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .result .mt { font-size: 12px; color: #b58900; margin-top: 2px; }
+  .big-num { font-size: 22px; font-weight: 700; color: var(--red); }
+  .save { font-size: 15px; font-weight: 600; color: var(--green); margin-top: 8px; }
+  .card-tip { background: #fff8e1; border: 1px solid #f0e0b0; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-top: 10px; }
+  .err { color: #a32d2d; font-size: 13px; margin-top: 8px; }
+  .hide { display: none !important; }
+  .loading { color: var(--muted); font-size: 13px; }
+  .step-num {
+    display: inline-block; background: var(--amber); color: #5a3d00;
+    font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 10px; margin-right: 6px;
+  }
+  .cart-line { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .qtybtn {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1px solid var(--border); background: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 14px; color: var(--text); flex-shrink: 0;
+  }
+  .qtybtn:hover { border-color: var(--red); color: var(--red); }
+  .banbtn { cursor: pointer; color: #c8c2b8; font-size: 11px; flex-shrink: 0; user-select: none; }
+  .banbtn:hover { color: var(--red); }
+  .bl-tag { display: inline-block; background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 2px 8px; margin: 2px; }
+  .sb { flex: 1; text-align: center; padding: 8px 4px; border-radius: 8px; border: 1px solid var(--border); background: #fff; font-size: 13px; color: var(--muted); cursor: pointer; user-select: none; transition: background .15s, border-color .15s; }
+  .sb:hover { border-color: var(--amber); }
+  .sb.active { background: var(--amber); color: #5a3d00; border-color: var(--amber); font-weight: 600; }
+  .sb .cnt { display: inline-block; min-width: 16px; padding: 0 4px; margin-left: 3px; border-radius: 8px; background: var(--red); color: #fff; font-size: 11px; font-weight: 700; line-height: 16px; }
+  .sb:not(.active) .cnt { background: #ddd6c8; color: #6b6455; }
+  .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 20px; }
+  .modal { background: #fff; border-radius: 14px; padding: 20px 22px; max-width: 420px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+  .modal h3 { font-size: 16px; margin: 0 0 10px; color: var(--text); }
+  .modal .body { font-size: 14px; color: #4a463e; line-height: 1.6; }
+  .modal .rm-list { margin: 8px 0; padding: 8px 12px; background: #faf5f5; border: 1px solid #f0d8d8; border-radius: 8px; font-size: 13px; color: #a32d2d; }
+  .modal .btn-row { margin-top: 14px; text-align: right; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="logo-row">
+      <svg width="52" height="44" viewBox="0 0 46 40" style="flex-shrink:0;">
+        <path d="M5 38 V13 C5 4 15 4 15 13 V38" fill="none" stroke="#FFC72C" stroke-width="5.5" stroke-linecap="round"/>
+        <path d="M15 38 V13 C15 4 25 4 25 13 V38" fill="none" stroke="#FFC72C" stroke-width="5.5" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <h1>麦麦精算师</h1>
+        <p>i'm lovin' it · 选好门店 → 选怎么取餐 → 勾选想吃的 → 一键算出最省点法</p>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- 第 1 步：定位门店 -->
+  <div class="step">
+    <h2><span class="step-num">1</span>定位门店</h2>
+    <div class="tip">用收藏门店，或搜索附近门店</div>
+    <div>
+      <button class="btn" id="btn-fav" onclick="locate(1)">⭐ 我的收藏门店</button>
+      <button class="btn" id="btn-search" onclick="showSearch()">🔍 搜索附近</button>
+    </div>
+    <div id="search-box" class="hide" style="margin-top:10px;">
+      <input type="text" id="city" placeholder="城市，如：青岛">
+      <input type="text" id="keyword" placeholder="地标/区名，如：黄岛">
+      <button class="btn primary" onclick="locate(2)">查询门店</button>
+    </div>
+    <div id="store-list" class="list"></div>
+    <div id="store-picked" class="cart-line"></div>
+  </div>
+
+  <!-- 第 2 步：取餐方式 -->
+  <div class="step">
+    <h2><span class="step-num">2</span>取餐方式</h2>
+    <div class="tip">选完门店后，选怎么取餐</div>
+    <div>
+      <button class="btn" id="pick1" onclick="pickMethod(1)">🍽️ 堂食自提</button>
+      <button class="btn" id="pick2" onclick="pickMethod(2)">🚗 得来速</button>
+      <button class="btn" id="pick3" onclick="pickMethod(3)">🛵 麦乐送外卖</button>
+    </div>
+    <div id="drivethru-box" class="hide" style="margin-top:10px;">
+      <input type="text" id="dt-city" placeholder="城市，如：青岛">
+      <input type="text" id="dt-keyword" placeholder="地标，如：黄岛">
+      <button class="btn primary" onclick="confirmDrivethru()">获取得来速信息</button>
+    </div>
+    <div id="address-box" class="list hide"></div>
+    <div id="dstore-box" class="list hide"></div>
+    <div id="pick-picked" class="cart-line"></div>
+  </div>
+
+  <!-- 第 3 步：选餐（标签式，三个品类随时点切换） -->
+  <div class="step">
+    <h2><span class="step-num">3</span>选餐</h2>
+    <div class="tip">点上面标签在「汉堡 / 小食 / 饮品」之间随时切换，选完点「完成选餐」出 4 个方案</div>
+
+    <div id="step-bar" style="display:flex;gap:6px;margin:12px 0;">
+      <div class="sb" id="sb-0" onclick="gotoStep(0)">🍔 汉堡<span class="cnt" id="cnt-0">0</span></div>
+      <div class="sb" id="sb-1" onclick="gotoStep(1)">🍟 小食<span class="cnt" id="cnt-1">0</span></div>
+      <div class="sb" id="sb-2" onclick="gotoStep(2)">🥤 饮品<span class="cnt" id="cnt-2">0</span></div>
+    </div>
+
+    <div id="pick-list" class="list"></div>
+    <div id="cart-line" class="cart-line"></div>
+
+    <div style="margin-top:14px;display:flex;gap:8px;">
+      <button class="btn primary" style="flex:1;" onclick="calc()">✅ 完成选餐，生成 4 个方案</button>
+    </div>
+
+    <div id="blacklist-box" class="hide" style="margin-top:10px;background:#faf5f5;border:1px solid #f0d8d8;border-radius:8px;padding:8px 12px;font-size:13px;">
+      🚫 黑名单（不参与推荐，点「恢复」放回列表）：<span id="blacklist-items"></span>
+    </div>
+    <div id="calc-err" class="err"></div>
+  </div>
+
+  <!-- 结果 -->
+  <div class="step hide" id="result-step">
+    <h2><span class="step-num">4</span>四个点餐方案</h2>
+    <div style="margin:8px 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="font-size:14px;">预算（元，可选）：</span>
+      <input type="number" id="budget" placeholder="如 30" min="1" style="width:110px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;">
+      <button class="btn primary" onclick="calc()">🔄 按预算重算</button>
+      <button class="btn" onclick="backToPick()">← 重新选餐</button>
+    </div>
+    <div id="result" class="result"></div>
+  </div>
+
+</div>
+
+<!-- 切店后移除餐品的提示弹窗 -->
+<div id="rm-modal" class="modal-mask hide">
+  <div class="modal">
+    <h3>⚠️ 这家门店不卖这些</h3>
+    <div class="body">以下你已选的餐品在这家店没有，已自动从清单移除，其余已选餐品已为你保留：</div>
+    <div class="rm-list" id="rm-list"></div>
+    <div class="btn-row"><button class="btn primary" onclick="closeRmModal()">知道了</button></div>
+  </div>
+</div>
+
+<script>
+let storeCode = null, storeName = '';
+let locateCtx = { method: 0, city: '', keyword: '' };
+let beType = 1, orderType = 1, beCode = null;
+let selected = { burger: {}, snack: {}, drink: {} };
+let menuData = { burger: [], snack: [], drink: [] };
+let filteredMenu = { burger: [], snack: [], drink: [] };
+let blacklist = new Set();
+let currentStep = 0;
+const STEP_KINDS = ['burger', 'snack', 'drink'];
+
+const $ = id => document.getElementById(id);
+
+async function api(path, opts) {
+  let r;
+  try {
+    r = await fetch(path, opts);
+  } catch (e) {
+    throw new Error('连不上本地服务（请双击 start_web.bat 启动，而不是直接打开 HTML 文件）');
+  }
+  if (!r.ok) throw new Error('服务响应异常 (' + r.status + ')');
+  return await r.json();
+}
+
+function showSearch() {
+  $('search-box').classList.toggle('hide');
+}
+
+let locateSeq = 0;
+async function locate(method) {
+  const seq = ++locateSeq;  // 每次点击自增，用于丢弃过期请求
+  locateCtx.method = method;
+  $('store-list').innerHTML = '<div class="loading">查询中……</div>';
+  let url;
+  if (method === 1) {
+    url = '/api/stores?method=1&be_type=1';
+  } else {
+    locateCtx.city = $('city').value.trim() || '青岛';
+    locateCtx.keyword = $('keyword').value.trim();
+    url = `/api/stores?method=2&be_type=1&city=${encodeURIComponent(locateCtx.city)}&keyword=${encodeURIComponent(locateCtx.keyword)}`;
+  }
+  try {
+    const data = await api(url);
+    if (seq !== locateSeq) return;  // 已发起更新的请求，丢弃本次结果
+    if (data.error) { $('store-list').innerHTML = `<div class="err">${data.error}</div>`; return; }
+    const stores = data.stores || [];
+    if (!stores.length) { $('store-list').innerHTML = '<div class="err">未找到门店，换个关键词试试</div>'; return; }
+    $('store-list').innerHTML = stores.map((s, i) =>
+      `<div class="item" onclick="pickStore(${i})">
+         <span class="name">${s.storeName}</span>
+         <span class="price">${s.distance ? '约'+s.distance+'米' : ''}</span>
+         <div class="extra">${s.address || ''}</div>
+       </div>`).join('');
+    window._stores = stores;
+  } catch (e) {
+    if (seq !== locateSeq) return;
+    $('store-list').innerHTML = `<div class="err">${e.message}</div>`;
+  }
+}
+
+function pickStore(i) {
+  const s = window._stores[i];
+  storeCode = s.storeCode; storeName = s.storeName;
+  document.querySelectorAll('#store-list .item').forEach((el, j) => el.classList.toggle('sel', j === i));
+  $('store-picked').innerHTML = '✅ 已选门店：' + s.storeName;
+  resetMethod();
+}
+
+function resetMethod() {
+  beType = 1; orderType = 1; beCode = null;
+  $('pick-picked').innerHTML = '';
+  ['pick1','pick2','pick3'].forEach(id => $(id).classList.remove('active'));
+  $('drivethru-box').classList.add('hide');
+  $('address-box').classList.add('hide'); $('address-box').innerHTML = '';
+  $('dstore-box').classList.add('hide'); $('dstore-box').innerHTML = '';
+}
+
+function pickMethod(m) {
+  resetMethod();
+  if (m === 1) {
+    beType = 1; orderType = 1; beCode = null;
+    $('pick1').classList.add('active');
+    $('pick-picked').innerHTML = '✅ 取餐方式：堂食自提';
+    loadMenu();
+  } else if (m === 2) {
+    $('pick2').classList.add('active');
+    if (locateCtx.city) {
+      confirmDrivethru();
+    } else {
+      $('drivethru-box').classList.remove('hide');
+    }
+  } else {
+    $('pick3').classList.add('active');
+    loadAddresses();
+  }
+}
+
+async function confirmDrivethru() {
+  if (locateCtx.city) {
+    // 已有城市
+  } else {
+    locateCtx.city = $('dt-city').value.trim() || '青岛';
+    locateCtx.keyword = $('dt-keyword').value.trim();
+  }
+  $('pick-picked').innerHTML = '<div class="loading">正在获取得来速信息……</div>';
+  try {
+    const d = await api(`/api/drivethru?store_code=${storeCode}&city=${encodeURIComponent(locateCtx.city)}&keyword=${encodeURIComponent(locateCtx.keyword)}`);
+    if (d.be_code) {
+      beType = 5; orderType = 1; beCode = d.be_code;
+      $('pick-picked').innerHTML = '✅ 取餐方式：得来速';
+      loadMenu();
+    } else {
+      $('pick-picked').innerHTML = '<div class="err">这家店不支持得来速，或城市/地标没填对。请改选堂食或外卖。</div>';
+    }
+  } catch (e) {
+    $('pick-picked').innerHTML = `<div class="err">${e.message}</div>`;
+  }
+}
+
+async function loadAddresses() {
+  try {
+    const d = await api('/api/delivery_addresses');
+    if (!d.addresses || !d.addresses.length) {
+      $('pick-picked').innerHTML = '<div class="err">暂无配送地址，请在麦当劳 App 添加。改选堂食吧。</div>';
+      return;
+    }
+    $('address-box').classList.remove('hide');
+    $('address-box').innerHTML = '<div style="font-size:13px;margin-bottom:6px;">选择收货地址：</div>' +
+      d.addresses.map((a, i) => `<div class="item" onclick="pickAddress(${i})"><span class="name">${a.fullAddress}</span><div class="extra">${a.contactName}</div></div>`).join('');
+    window._addresses = d.addresses;
+  } catch (e) {
+    $('pick-picked').innerHTML = `<div class="err">${e.message}</div>`;
+  }
+}
+
+async function pickAddress(i) {
+  const a = window._addresses[i];
+  document.querySelectorAll('#address-box .item').forEach((el, j) => el.classList.toggle('sel', j === i));
+  try {
+    const d = await api(`/api/delivery_stores?address_id=${a.addressId}`);
+    if (!d.stores || !d.stores.length) {
+      $('pick-picked').innerHTML = '<div class="err">该地址无可配送门店</div>';
+      return;
+    }
+    $('dstore-box').classList.remove('hide');
+    $('dstore-box').innerHTML = '<div style="font-size:13px;margin:6px 0;">选择配送门店：</div>' +
+      d.stores.map((s, j) => `<div class="item" onclick="pickDstore(${j})"><span class="name">${s.storeName}</span></div>`).join('');
+    window._dstores = d.stores;
+  } catch (e) {
+    $('pick-picked').innerHTML = `<div class="err">${e.message}</div>`;
+  }
+}
+
+function pickDstore(j) {
+  const s = window._dstores[j];
+  document.querySelectorAll('#dstore-box .item').forEach((el, k) => el.classList.toggle('sel', k === j));
+  beType = 2; orderType = 2; beCode = s.beCode; storeCode = s.storeCode;
+  $('pick-picked').innerHTML = '✅ 取餐方式：麦乐送外卖（配送门店：' + s.storeName + '）';
+  loadMenu();
+}
+
+async function loadMenu() {
+  $('pick-list').innerHTML = '<div class="loading">菜单加载中……</div>';
+  try {
+    const d = await api(`/api/menu?store_code=${storeCode}&be_type=${beType}&order_type=${orderType}&be_code=${encodeURIComponent(beCode||'')}`);
+    if (d.error) { $('pick-list').innerHTML = `<div class="err">${d.error}</div>`; return; }
+    menuData = d.menu;
+    currentStep = 0;
+    // 换店后旧方案已失效，隐藏结果区，避免旧方案和新弹窗混在一起
+    $('result-step').classList.add('hide');
+    let removed = [];
+    try { removed = reconcileSelection() || []; } catch (e) { console.error('清单校对出错(已跳过):', e); }
+    renderPick();
+    removed = removed.filter(x => x && String(x).trim());
+    if (removed.length) showRmModal(removed);
+  } catch (e) {
+    $('pick-list').innerHTML = `<div class="err">加载失败：${e.message}</div>`;
+  }
+}
+
+// 与后端 fuzzy_match 一致的名称归一化（去空白/括号）
+function jsNormalize(s) {
+  if (!s) return '';
+  return String(s).replace(/[\s\u3000]+/g, '').replace(/[（(].*?[)）]/g, '');
+}
+// 剥掉“单品精选/单品/精选”等营销后缀，取核心名（与后端 core_name 对齐）
+function jsCore(s) {
+  let n = jsNormalize(s), changed = true;
+  while (changed && n) {
+    changed = false;
+    for (const suf of ['单品精选', '单品', '精选']) {
+      if (n.endsWith(suf) && n.length > suf.length) { n = n.slice(0, -suf.length); changed = true; }
+    }
+  }
+  return n;
+}
+// 与后端 fuzzy_match 一致的模糊匹配（含“汉堡/堡”变体）
+function jsFuzzy(a, b) {
+  a = jsCore(a); b = jsCore(b);
+  if (!a || !b) return false;
+  const vars = t => (t.includes('汉堡') ? [t, t.replace(/汉堡/g, '堡')] : t.includes('堡') ? [t, t.replace(/堡/g, '汉堡')] : [t]);
+  for (const x of vars(a)) for (const y of vars(b)) {
+    if (x === y) return true;
+    const lo = x.length >= y.length ? x : y, sh = x.length >= y.length ? y : x;
+    if (sh.length >= 2 && lo.includes(sh)) return true;
+  }
+  return false;
+}
+function menuHasName(kind, name) {
+  return (menuData[kind] || []).some(o => jsFuzzy(o.name, name));
+}
+// 切换门店后：保留新店有的已选餐品，删除没有的，返回被删清单
+function reconcileSelection() {
+  const removed = [];
+  ['burger', 'snack', 'drink'].forEach(k => {
+    Object.keys(selected[k]).forEach(n => {
+      if (!menuHasName(k, n)) {
+        delete selected[k][n];
+        removed.push(`${KIND[k]}「${n}」`);
+      }
+    });
+  });
+  return removed;
+}
+function showRmModal(list) {
+  // 双保险：空列表绝不弹窗（杜绝“空弹窗卡住”）
+  const items = (list || []).filter(x => x && String(x).trim());
+  if (!items.length) return;
+  $('rm-list').innerHTML = items.map(x => '<div>✂️ ' + String(x) + '</div>').join('');
+  $('rm-modal').classList.remove('hide');
+}
+function closeRmModal() {
+  $('rm-modal').classList.add('hide');
+}
+
+function cardHtml(k, i, o) {
+  const qty = selected[k][o.name] || 0;
+  const safeName = o.name.replace(/"/g, '&quot;');
+  // 选中后的数量控件独占第二行，不再挤压名称
+  const ctrlRow = qty > 0
+    ? `<div style="display:flex;justify-content:flex-end;align-items:center;gap:4px;margin-top:8px;">
+         <span class="qtybtn" onclick="event.stopPropagation();subQty('${k}',${i})">−</span>
+         <span style="font-weight:700;color:var(--red);min-width:40px;text-align:center;">${qty} 份</span>
+         <span class="qtybtn" onclick="event.stopPropagation();addQty('${k}',${i})">＋</span>
+       </div>`
+    : '';
+  return `<div class="item ${qty > 0 ? 'sel' : ''}" onclick="addQty('${k}',${i})">
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${o.image ? `<img src="${o.image}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0;">` : ''}
+        <div style="flex:1;min-width:0;">
+          <div class="name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${safeName}">${o.freq ? '🔥' : ''}${o.pop ? '⭐' : ''} ${o.name}</div>
+          <div class="price">¥${o.price}</div>
+        </div>
+        <span class="qtybtn" onclick="event.stopPropagation();addQty('${k}',${i})" style="flex-shrink:0;">＋</span>
+        <span class="banbtn" onclick="event.stopPropagation();ban('${k}',${i})" title="加入黑名单，不再显示">拉黑</span>
+      </div>
+      ${ctrlRow}
+    </div>`;
+}
+
+function renderPick() {
+  const kind = STEP_KINDS[currentStep];
+  filteredMenu[kind] = (menuData[kind] || []).filter(o => !blacklist.has(o.name));
+  if (!filteredMenu[kind].length) {
+    // 该品类一家店没货/被拉黑光了，给出明确提示而不是空白（避免“卡住”感）
+    $('pick-list').innerHTML = `<div class="err">这家门店当前没有${ {burger:'汉堡/主食',snack:'小食',drink:'饮品'}[kind] }可选，点上方标签换其他品类看看</div>`;
+  } else {
+    $('pick-list').innerHTML = filteredMenu[kind].map((o, i) =>
+      `<div id="card-${kind}-${i}">${cardHtml(kind, i, o)}</div>`).join('');
+  }
+  updateStepBar();
+  updateCart();
+  updateBlacklistHint();
+}
+
+function gotoStep(s) {
+  currentStep = s;
+  renderPick();
+}
+
+function updateStepBar() {
+  for (let s = 0; s < 3; s++) {
+    const el = $(`sb-${s}`);
+    el.classList.toggle('active', s === currentStep);
+    const k = STEP_KINDS[s];
+    const n = Object.values(selected[k]).reduce((a, b) => a + b, 0);
+    $(`cnt-${s}`).textContent = n;
+  }
+}
+
+function backToPick() {
+  currentStep = 0;
+  $('result-step').classList.add('hide');
+  renderPick();
+}
+
+function updateBlacklistHint() {
+  const box = $('blacklist-box');
+  if (blacklist.size > 0) {
+    box.classList.remove('hide');
+    const arr = [...blacklist];
+    window._blacklist = arr;
+    $('blacklist-items').innerHTML = arr.map((n, i) =>
+      `<span class="bl-tag">${n} <a href="javascript:void(0)" onclick="unban(${i})" style="color:var(--red);">恢复</a></span>`).join(' ');
+  } else {
+    box.classList.add('hide');
+  }
+}
+
+function unban(i) {
+  blacklist.delete(window._blacklist[i]);
+  renderPick();
+}
+
+function ban(kind, i) {
+  const name = filteredMenu[kind][i].name;
+  blacklist.add(name);
+  delete selected[kind][name];
+  renderPick();
+  updateCart();
+}
+
+function clearBlacklist() {
+  blacklist.clear();
+  renderPick();
+}
+
+function addQty(kind, i) {
+  const name = filteredMenu[kind][i].name;
+  selected[kind][name] = (selected[kind][name] || 0) + 1;
+  refreshCard(kind, i);
+}
+
+function subQty(kind, i) {
+  const name = filteredMenu[kind][i].name;
+  if (selected[kind][name]) {
+    selected[kind][name]--;
+    if (selected[kind][name] <= 0) delete selected[kind][name];
+  }
+  refreshCard(kind, i);
+}
+
+function refreshCard(kind, i) {
+  const o = filteredMenu[kind][i];
+  const el = $(`card-${kind}-${i}`);
+  if (el && o) el.innerHTML = cardHtml(kind, i, o);
+  updateCart();
+}
+
+function updateCart() {
+  const parts = [];
+  ['burger', 'snack', 'drink'].forEach(k => {
+    for (const [n, q] of Object.entries(selected[k])) parts.push(q > 1 ? `${n}×${q}` : n);
+  });
+  $('cart-line').innerHTML = parts.length ? '已选：' + parts.join(' + ') : '';
+}
+
+// 把 {名称: 数量} 展开成重复数组（后端按重复次数计数量）
+function expand(obj) {
+  const arr = [];
+  for (const [n, q] of Object.entries(obj)) for (let i = 0; i < q; i++) arr.push(n);
+  return arr;
+}
+
+async function calc() {
+  const burgers = expand(selected.burger), snacks = expand(selected.snack), drinks = expand(selected.drink);
+  if (!burgers.length && !snacks.length && !drinks.length) {
+    $('calc-err').innerHTML = '你还没选任何餐品，回去选一样吧';
+    currentStep = 0;
+    renderPick();
+    return;
+  }
+  $('calc-err').innerHTML = '<div class="loading">正在生成 4 个方案……</div>';
+  const budget = parseFloat($('budget').value);
+  try {
+    const d = await api('/api/plans', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ store_code: storeCode, be_type: beType, order_type: orderType, be_code: beCode, burgers, snacks, drinks, budget: isNaN(budget) ? null : budget })
+    });
+    if (d.error) { $('calc-err').innerHTML = d.error; return; }
+    $('calc-err').innerHTML = '';
+    renderPlans(d.plans, d.card_count);
+  } catch (e) {
+    $('calc-err').innerHTML = '生成失败：' + e.message;
+  }
+}
+
+const KIND = { burger: '汉堡', snack: '小食', drink: '饮品' };
+// 点弹窗遮罩空白处也能关闭，避免“卡在弹窗”的感觉
+$('rm-modal').addEventListener('click', e => { if (e.target && e.target.id === 'rm-modal') closeRmModal(); });
+function renderPlans(plans, cardCount) {
+  $('result-step').classList.remove('hide');
+  const accent = ['var(--red)', 'var(--amber)', '#0EA5A0', '#7C3AED'];
+  let html = '';
+  plans.forEach((p, idx) => {
+    html += `<div class="plan-item" style="margin-bottom:14px;border-left:4px solid ${accent[idx]};">
+      <div class="title" style="font-size:15px;">方案${idx+1} · ${p.title} <span style="color:var(--muted);font-weight:400;font-size:13px;">${p.desc}</span></div>
+      <div class="big-num" style="margin:4px 0;">¥${p.plan_total}</div>`;
+    if (p.card_fee > 0) {
+      html += `<div class="cov">💳 含麦金卡卡费 ¥${p.card_fee}（首月，次月起无卡费）</div>`;
+      html += `<div class="cov" style="color:var(--muted);font-size:12px;">ℹ️ 麦当劳接口暂无法检测你是否已开卡，按「随单开卡」计算；若已开卡请忽略卡费。</div>`;
+    }
+    if (idx > 0 && p.vs_base) {
+      const diff = p.vs_base > 0 ? `比「严格套餐」贵 ¥${p.vs_base}` : `比「严格套餐」省 ¥${-p.vs_base}`;
+      html += `<div class="cov" style="color:${p.vs_base>0?'#a32d2d':'var(--green)'};">${diff}</div>`;
+    }
+    if (p.chosen.length) {
+      p.chosen.forEach(c => {
+        const cov = c.covered.map(x => {
+          if (x.similar) {
+            // 说清楚：把你要的什么，换成了什么
+            return `${KIND[x.kind]}：你要的「${x.want}」→ 套餐换成「${x.hit}」${x.extra > 0 ? '（+¥' + x.extra + '）' : ''}`;
+          }
+          return `${KIND[x.kind]}「${x.hit}」${x.is_default ? '' : '（换品+¥' + x.extra + '）'}`;
+        }).join('；');
+        html += `<div class="cov">📦 ${c.name} ¥${c.cost}（${cov}）</div>`;
+        if (c.bonus && c.bonus.length) {
+          const btxt = c.bonus.map(b => `${KIND[b.kind]}「${b.name}」${b.price ? '约¥'+b.price : ''}`).join('、');
+          html += `<div class="cov" style="color:#8a6d1a;">🎁 多含（你没点，套餐自带）：${btxt}</div>`;
+        }
+      });
+    }
+    if (p.rest.length) {
+      html += `<div class="cov">➕ 单点：${p.rest.map(r => `${KIND[r.kind]}「${r.name}」${r.qty>1?'×'+r.qty:''}`).join('、')}</div>`;
+      p.rest.forEach(r => {
+        if (r.alternatives && r.alternatives.length) {
+          html += `<div class="cov" style="color:var(--green);">　💡 「${r.name}」的相似替代：${r.alternatives.map(a => `${a.name}(¥${a.price})`).join('、')}</div>`;
+        }
+      });
+    }
+    if (p.dropped && p.dropped.length) {
+      p.dropped.forEach(d => {
+        html += `<div class="cov" style="color:#a32d2d;">✂️ 舍弃：${KIND[d.kind]}「${d.name}」</div>`;
+        if (d.alternatives && d.alternatives.length) {
+          html += `<div class="cov" style="color:var(--green);">　💡 相似替代：${d.alternatives.map(a => `${a.name}(¥${a.price})`).join('、')}</div>`;
+        }
+      });
+    }
+    if (p.saving > 0) html += `<div class="save">💰 比单点省 ¥${p.saving}</div>`;
+    html += `<div class="mt">🛵 美团预估 ¥${p.meituan_low}~¥${p.meituan_high}（估算）</div>`;
+    html += '</div>';
+  });
+  $('result').innerHTML = html;
+  $('result-step').scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
